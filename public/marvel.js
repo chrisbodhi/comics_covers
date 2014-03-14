@@ -1,7 +1,17 @@
+"use strict";
+
 var marvelCover = angular.module('marvelCover', []);
 
 function mainController($scope, $http) {
   $scope.coverData = {};
+
+  // first test of the API
+  // API is off the table
+  
+  marvel.characters.findAll()
+    .then(console.log)
+    .fail(console.error)
+    .done();
 
   // show all of the covers
   $http.get('/api/covers')
@@ -15,7 +25,7 @@ function mainController($scope, $http) {
 
   // after submit the form data, send it to the node api
   $scope.createTodo = function() {
-    $http.post('/api/todos', $scope.coverData)
+    $http.post('/api/covers', $scope.coverData)
          .success(function(data) {
            $scope.coverData = {};
            $scope.todos = data;
@@ -28,7 +38,7 @@ function mainController($scope, $http) {
 
   // delete a todo after hitting the checkbox
   $scope.deleteTodo = function(id) {
-    $http.delete('/api/todos' + id)
+    $http.delete('/api/covers' + id)
          .success(function(data) {
            $scope.todos = data;
            console.log(data);
