@@ -1,9 +1,13 @@
+"use strict";
+
 // SETTING IT UP
 
 var express   = require('express');
 var app       = express();
 var mongoose  = require('mongoose');
 var api       = require('marvel-api');
+// var process   = require('process');
+// var keys      = require('./.env');
 
 // CONFIGURATION
 
@@ -18,11 +22,13 @@ app.configure(function() {
   app.use(express.methodOverride());
 });
 
-//== for the Marvel API
+//== config the Marvel API
 
 var marvel = api.createClient({
-  publicKey: 'my-public-key'
-, privateKey: 'my-private-key'
+//   publicKey: process.env.MARVEL_PUBLIC
+// , privateKey: process.env.MARVEL_PRIVATE
+  publicKey: '3699d5fb6e009e218438be4fa84b70d3'
+, privateKey: '' 
 });
 
 // DEFINE MODEL
@@ -81,7 +87,7 @@ app.delete('/api/todos/:todo_id', function (req, res) {
 // FRONTEND ROUTE
 
 app.get('*', function(req, res) {
-  res.sendfile('./public.index.html'); // load the single view file so Angular can handle the rest
+  res.sendfile('./public/index.html'); // load the single view file so Angular can handle the rest
 });
 
 // FINISH IT UP

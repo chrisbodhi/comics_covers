@@ -1,0 +1,3 @@
+# Storage of environmental variables, a.k.a. the Marvel API keys
+
+.env
