@@ -11,7 +11,7 @@ var last = 'ellis';
 // ts is a time stamp changed to a string for the URL
 // var ts = new Date().toTimeString();
 var ts = new Date().toTimeString();
-var private_key = '';
+var private_key = '9fb95b541971264dce4b4dc8a7c9bf8064b574a0';
 var public_key = '3699d5fb6e009e218438be4fa84b70d3';
 
 // MD5 hash created per docs stated need for such a combination of information to make a call from the server; that is, node.js
@@ -35,13 +35,35 @@ var uriParser = function(json) {
   return uris;
 };
 
-// Collects the thumbnails from each URI, puts the addresses into an array
-var imageParser = function(arr) {
-  var pics = [];
+// Collects the URIs for each comic, puts the addresses to later hit into an array
+var imageUris = function(arr) {
+  var addys = [];
   for (var i = 0; i < arr.length; i++) {
-    pics.push(arr[i] + requisite);
+    addys.push(arr[i] + '?' + requisite);
   }
-  return pics;
+  return addys;
+};
+
+var getCovers = function(allUris) {
+  var imageTags = [];
+  for (var i = 0; i < allUris.length; i++) {
+
+    http.get(allUris[i], function(res) {
+      var comicBody = ''; 
+
+      res.on('data', function(comicChunk) {
+        comicBody += comicChunk;
+      });
+
+      res.on('end', function() {
+        var comicRes = JSON.parse(comicBody);
+        var aTag = "<img src='" + comicRes.data.results[0].thumbnail.path + "/portrait_medium.jpg' >";
+        imageTags.push(aTag);
+      });
+    });
+    console.log(imageTags);
+  }
+  return imageTags;
 };
 
 
@@ -56,7 +78,12 @@ http.get(creatorURL, function(res) {
   res.on('end', function() {
     var responsible = JSON.parse(body);
     var uris = uriParser(responsible);
-    console.log(imageParser(uris));
+    
+    // console.log(uris);
+    // console.log(imageUris(uris));
+    console.log(getCovers(imageUris(uris)));
+
+
 
     http.createServer(function (request, response) {
       response.writeHead(200, {'Content-Type': 'text/html'});
@@ -69,7 +96,6 @@ http.get(creatorURL, function(res) {
 }).on('error', function(e) {
   console.log("D'oh! ", e);
 });
-
 
 // pass form data [name] to server
 // if not in db, FIRE off to API to get id
