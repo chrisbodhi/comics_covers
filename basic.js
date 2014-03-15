@@ -11,7 +11,7 @@ var last = 'ellis';
 // ts is a time stamp changed to a string for the URL
 // var ts = new Date().toTimeString();
 var ts = new Date().toTimeString();
-var private_key = '9fb95b541971264dce4b4dc8a7c9bf8064b574a0';
+var private_key = '';
 var public_key = '3699d5fb6e009e218438be4fa84b70d3';
 
 // MD5 hash created per docs stated need for such a combination of information to make a call from the server; that is, node.js
@@ -35,7 +35,7 @@ var uriParser = function(json) {
   return uris;
 };
 
-// Collects the URIs for each comic, puts the addresses to later hit into an array
+// Prepares the comic URIs to be passed directly into the API by adding timestamp, keys, hash
 var imageUris = function(arr) {
   var addys = [];
   for (var i = 0; i < arr.length; i++) {
@@ -44,28 +44,54 @@ var imageUris = function(arr) {
   return addys;
 };
 
-var getCovers = function(allUris) {
-  var imageTags = [];
-  for (var i = 0; i < allUris.length; i++) {
+// Uses http.get to hit the API, format the response to JSON
+var httpGet = function(uri) {
+  http.get(uri, function(res) {
+    console.log(res.statusCode);
+    var body = '';
 
-    http.get(allUris[i], function(res) {
-      var comicBody = ''; 
-
-      res.on('data', function(comicChunk) {
-        comicBody += comicChunk;
-      });
-
-      res.on('end', function() {
-        var comicRes = JSON.parse(comicBody);
-        var aTag = "<img src='" + comicRes.data.results[0].thumbnail.path + "/portrait_medium.jpg' >";
-        imageTags.push(aTag);
-      });
+    res.on('data', function (chunk) {
+      body += chunk;
     });
-    console.log(imageTags);
-  }
-  return imageTags;
+
+    res.on('end', function(chunk) {
+      var responseJSON = JSON.parse(body);
+    });
+  }).on('error', function(e) {
+    console.log("Error: ", e);
+  })
+}
+
+var httpGetCoverHref = function (aUri) {
+  var aTag = '';
+  http.get(aUri, function(res) {
+    var comicBody = ''; 
+
+    res.on('data', function(comicChunk) {
+      comicBody += comicChunk;
+    });
+
+    res.on('end', function() {
+      var comicRes = JSON.parse(comicBody);
+      aTag = '<img src="' + comicRes.data.results[0].thumbnail.path + '/portrait_xlarge.' + comicRes.data.results[0].thumbnail.extension + '" alt="' + comicRes.data.results[0].title + '" >';
+      console.log("at end of res.on, aTag is ", aTag);
+      return aTag;
+    });
+
+  }).on('error', function(e) {
+    console.log("Got error: " + e.message);
+  });
 };
 
+var getCovers = function(allUris) {
+  var imageTags = [];
+  // for (var i = 0; i < allUris.length; i++) {
+    // imageTags.push(httpGetCoverHref(allUris));
+  // };
+  imageTags.push(httpGetCoverHref(allUris[0]));
+  console.log(imageTags + " is imageTags.");
+  return imageTags;
+};
 
 http.get(creatorURL, function(res) {
   console.log("Response came in: " + res.statusCode);
@@ -78,10 +104,12 @@ http.get(creatorURL, function(res) {
   res.on('end', function() {
     var responsible = JSON.parse(body);
     var uris = uriParser(responsible);
-    
-    // console.log(uris);
-    // console.log(imageUris(uris));
-    console.log(getCovers(imageUris(uris)));
+    var forTheCovers = imageUris(uris);
+
+    // console.log(forTheCovers, " forTheCovers.");
+    console.log(httpGetCoverHref(forTheCovers[0]), " httpGetCoverHref.")
+    // console.log(getCovers(forTheCovers));
+    // getCovers(forTheCovers);
 
 
 
