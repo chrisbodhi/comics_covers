@@ -1,4 +1,5 @@
 # Storage of environmental variables, a.k.a. the Marvel API keys
+# Managed with the dotenv package
 .env
 
 # Practice file for learning about promises

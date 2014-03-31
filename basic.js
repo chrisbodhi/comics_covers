@@ -2,6 +2,10 @@ var http = require('http');
 var crypto = require('crypto');
 var Q = require('q');
 var md5 = crypto.createHash('md5');
+var dotenv = require('dotenv');
+
+// Prepare the environmental variables, aka keys
+dotenv.load()
 
 // Placeholder test name - to be stored in a db or pulled from a form later
 var first = 'warren';
@@ -10,8 +14,8 @@ var last = 'ellis';
 // ts is a time stamp changed to a string for the URL
 // var ts = new Date().toTimeString();
 var ts = new Date().toTimeString();
-var private_key = '';
-var public_key = '3699d5fb6e009e218438be4fa84b70d3';
+var private_key = process.env.MARVEL_PRIVATE;
+var public_key = process.env.MARVEL_PUBLIC;
 
 // MD5 hash created per docs stated need for such a combination of information to make a call from the server; that is, node.js
 var hash = md5.update(ts + private_key + public_key);
@@ -32,7 +36,7 @@ var getComicsUri = function(uri){
   var deferred = Q.defer();
 
   http.get(uri, function(res) {
-    console.log("Status code: ", res.statusCode);
+    console.log("Status code:", res.statusCode);
     var body = '';
 
     res.on('data', function (chunk) {
@@ -42,6 +46,7 @@ var getComicsUri = function(uri){
     res.on('end', function(chunk) {
       var responseJSON = JSON.parse(body);
       var comicsCollectionUri = responseJSON.data.results[0].comics.collectionURI;
+      // console.log(comicsCollectionUri, "getComicsUri");
       deferred.resolve(comicsCollectionUri);
     });
   }).on('error', function(e) {
@@ -68,6 +73,7 @@ var getComicsFunction = function(collectionUri){
     res.on('end', function(chunk) {
       var responseJSON = JSON.parse(body);
       var comicsJSON = responseJSON.data.results;
+      // console.log(comicsJSON, "comicsJSON");
       deferred.resolve(comicsJSON);
     });
   }).on('error', function(e) {
@@ -84,6 +90,7 @@ var getCovers = function(json) {
   for (var i = 0; i < json.length; i += 1 ) {
     imageTags.push('<img src="' + json[i].thumbnail.path + '/portrait_xlarge.' + json[i].thumbnail.extension + '" alt="' + json[i].title + '" >');
   }
+  // console.log(imageTags, "imageTags");
   deferred.resolve(imageTags);
   return deferred.promise;
 };
@@ -93,22 +100,21 @@ var list = [];
 var showMe = function(arr) {
   "use strict";
   list = arr;
+  console.log(list, "list");
   return list;
 };
 
-// TODO: add function(reason) for fails for each dot-then
 // The promise chain that drives this bicycle wheel of nodeness
+// TODO: add function(reason) for fails for each dot-then
 getComicsUri(creatorURL)
-  // Return a JSON object of all comics
   .then(getComicsFunction)
   .then(getCovers)
   .then(showMe);
-  // .fail(function(error) {
-  //   console.log(error);
-  // })
-  // .done();
+
+// Running `node basic.js` in the command line stops the execution above this point. Loading the webpage runs everything below this line.
 
 console.log("list is ", typeof(list));
+console.log("what it is ");
 
 // Make server. Run functions to make API calls. Display images.
 http.createServer(function (request, response) {
