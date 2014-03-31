@@ -1,0 +1,25 @@
+body {
+  background-color: gray;
+}
+
+.form_box {
+  position: absolute;
+  z-index: 1;
+  background-color: blue;
+  margin-left: 65%;
+  width: 35%;
+  padding: 10px 0px 0px 100px;
+  border-radius: 0px 0px 0px 250px / 0px 0px 0px 150px;
+  box-shadow: 4px 4px gray;
+  opacity: .4;
+}
+
+.form_box:hover {
+  opacity: 1;
+}
+
+.row.covers {
+  width: 100%;
+  max-width: 100%;
+}
+
