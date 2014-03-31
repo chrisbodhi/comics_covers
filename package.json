@@ -1,13 +1,22 @@
-{
+﻿{
   "name": "node-todo",
   "version": "0.0.0",
   "description": "Simple todo application",
   "main": "server.js",
   "author": "@chrisbodhi by way of Scotch",
-  "dependencies": {
+  "scripts": 
+  {
+    "start": "node basic.js" 
+  },
+  "devDependencies": 
+  {
+    "grunt": "~0.4.4"
+  },
+  "dependencies": 
+  {
     "express": "~3.4.4",
     "mongoose": "~3.6.2",
     "q": "~1.0.1",
-    "grunt": "~0.4.4"
+    "es6-promise": "~0.1.1"
   }
 }

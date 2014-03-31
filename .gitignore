@@ -3,6 +3,10 @@
 
 # Practice file for learning about promises
 q.js
+q2.js
+timeout.js
+# FML - how many of these will I need?
+defer.js
 
 # Node modules
 node_modules/

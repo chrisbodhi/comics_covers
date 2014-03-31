@@ -1,4 +1,3 @@
-"use strict";
 
 var http = require('http');
 var crypto = require('crypto');
@@ -22,14 +21,48 @@ var hash = md5.update(ts + private_key + public_key);
 var hexed = hash.digest('hex');
 
 // end of slug containing information for authenticating API request
-var requisite = "&ts=" + ts + "&apikey=" + public_key + "&hash=" + hexed;
+var requisite = "ts=" + ts + "&apikey=" + public_key + "&hash=" + hexed;
 
 // URL for making search based on creator name
-var creatorURL = "http://gateway.marvel.com/v1/public/creators?firstName=" + first + "&lastName=" + last + requisite;
+var creatorURL = "http://gateway.marvel.com/v1/public/creators?firstName=" + first + "&lastName=" + last + "&" + requisite;
 
-// Uses http.get to hit the API, format the response to JSON
-var httpGet = function(uri) {
+// Starts the promises chain!
+// Uses http.get to hit the API, returns the URI of the creator's comics
+var getComicsUri = function(uri){
+  "use strict";
+  var deferred = Q.defer();
+
   http.get(uri, function(res) {
+    console.log("Status code: ", res.statusCode);
+    var body = '';
+
+    res.on('data', function (chunk) {
+      body += chunk;
+    });
+
+    res.on('end', function(chunk) {
+      var responseJSON = JSON.parse(body);
+      var comicsCollectionUri = responseJSON.data.results[0].comics.collectionURI;
+      // console.log(comicsCollectionUri, "log from res.on in getComicsUri");
+      deferred.resolve(comicsCollectionUri);
+      // console.log(deferred.promise);
+    });
+  }).on('error', function(e) {
+    console.log("Error: ", e);
+  });
+  return deferred.promise;
+};
+
+// Takes the comicsCollection URI, adds the requisite data for making a
+// server-side call, gets a JSON object of the comics
+var getComicsFunction = function(collectionUri){
+  "use strict";
+  var deferred = Q.defer();
+
+  // console.log(collectionUri, "before make uri");
+  collectionUri += "?" + requisite;
+  // console.log(collectionUri, "after make uri");
+  http.get(collectionUri, function(res) {
     console.log(res.statusCode);
     var body = '';
 
@@ -39,40 +72,80 @@ var httpGet = function(uri) {
 
     res.on('end', function(chunk) {
       var responseJSON = JSON.parse(body);
+      // console.log(responseJSON);
+      var comicsJSON = responseJSON.data.results[0];
+      // console.log("getComicsFunction: ", comicsJSON);
+      deferred.resolve(comicsJSON);
     });
   }).on('error', function(e) {
     console.log("Error: ", e);
-  })
-}
-
-// Collects the URIs of the first 20 comics associated with the found name
-var uriParser = function(json) {
-  var uris = [];
-  for (var i = 0; i < json.data.results[0].comics.items.length; i++){
-    uris.push(json.data.results[0].comics.items[i].resourceURI);
-  }
-  return uris;
+  });
+  return deferred.promise;
 };
 
-// Prepares the comic URIs to be passed directly into the API by adding timestamp, keys, hash
-var imageUris = function(arr) {
-  var addys = [];
-  for (var i = 0; i < arr.length; i++) {
-    addys.push(arr[i] + '?' + requisite);
-  }
-  return addys;
+var getCovers = function(json) {
+  "use strict";
+  var imageTags = [];
+  var deferred = Q.defer();
+
+  console.log(json.thumbnail);
+  // for (var i = 0; i < json.length; i += 1 ) {
+  //   imageTags.push('<img src="' + json[i].thumbnail.path + '/portrait_xlarge.' + json[i].thumbnail.extension + '" alt="' + json[i].title + '" >');
+  // }
+  deferred.resolve(imageTags);
+  return deferred.promise;
 };
 
-// Array of image tags with appropriate alt text
-var imageTags = [];
+var showMe = function(arr) {
+  "use strict";
+  console.log(arr);
+};
 
-// Loops through all of the single comic JSON object, collecting paths to images
-var getCoverSrc = function (json) {
-  imageTags.push('<img src="' + json.data.results[0].thumbnail.path + '/portrait_xlarge.' + json.data.results[0].thumbnail.extension + '" alt="' + json.data.results[0].title + '" >');
-  return imageTags;
+var testObject = function(blob) {
+  console.log(blob);
 };
 
 
+// The promise chain that drives this bicycle wheel of nodeness
+// TODO: add function(reason) for fails for each dot then
+getComicsUri(creatorURL)
+  // Return a JSON object of all comics [well, first 20]
+  .then(getComicsFunction)
+  .then(getCovers)
+  .then(showMe)
+  // .fail(function(error) {
+  //   console.log(error);
+  // })
+  // .done();
+
+// var get = function(url) {
+//   "use strict";
+//   // return a new promise
+//   return new Promise(function(resolve, reject) {
+//     http.get(url, function(res) {
+//       console.log(res.statusCode);
+//       var body = '';
+
+//       res.on('data', function (chunk) {
+//         body += chunk;
+//       });
+
+//       res.on('end', function(chunk) {
+//         // console.log("at res.on(end) body:", body);
+//         return body;
+//       });
+//     }).on('error', function(e) {
+//       console.log("Error: ", e);
+//     });
+//   });
+//   // console.log(body);
+//   // return body;
+// };
+
+// run the function
+// get(creatorURL).then(function(response) {
+//   console.log("json!", response);
+// });
 
 // Make server. Run functions to make API calls. Display images.
 http.createServer(function (request, response) {
