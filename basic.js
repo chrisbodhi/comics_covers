@@ -1,4 +1,3 @@
-
 var http = require('http');
 var crypto = require('crypto');
 var Q = require('q');
@@ -11,7 +10,7 @@ var last = 'ellis';
 // ts is a time stamp changed to a string for the URL
 // var ts = new Date().toTimeString();
 var ts = new Date().toTimeString();
-var private_key = '';
+var private_key = '9fb95b541971264dce4b4dc8a7c9bf8064b574a0';
 var public_key = '3699d5fb6e009e218438be4fa84b70d3';
 
 // MD5 hash created per docs stated need for such a combination of information to make a call from the server; that is, node.js
@@ -43,9 +42,7 @@ var getComicsUri = function(uri){
     res.on('end', function(chunk) {
       var responseJSON = JSON.parse(body);
       var comicsCollectionUri = responseJSON.data.results[0].comics.collectionURI;
-      // console.log(comicsCollectionUri, "log from res.on in getComicsUri");
       deferred.resolve(comicsCollectionUri);
-      // console.log(deferred.promise);
     });
   }).on('error', function(e) {
     console.log("Error: ", e);
@@ -59,9 +56,7 @@ var getComicsFunction = function(collectionUri){
   "use strict";
   var deferred = Q.defer();
 
-  // console.log(collectionUri, "before make uri");
   collectionUri += "?" + requisite;
-  // console.log(collectionUri, "after make uri");
   http.get(collectionUri, function(res) {
     console.log(res.statusCode);
     var body = '';
@@ -72,9 +67,7 @@ var getComicsFunction = function(collectionUri){
 
     res.on('end', function(chunk) {
       var responseJSON = JSON.parse(body);
-      // console.log(responseJSON);
-      var comicsJSON = responseJSON.data.results[0];
-      // console.log("getComicsFunction: ", comicsJSON);
+      var comicsJSON = responseJSON.data.results;
       deferred.resolve(comicsJSON);
     });
   }).on('error', function(e) {
@@ -88,64 +81,34 @@ var getCovers = function(json) {
   var imageTags = [];
   var deferred = Q.defer();
 
-  console.log(json.thumbnail);
-  // for (var i = 0; i < json.length; i += 1 ) {
-  //   imageTags.push('<img src="' + json[i].thumbnail.path + '/portrait_xlarge.' + json[i].thumbnail.extension + '" alt="' + json[i].title + '" >');
-  // }
+  for (var i = 0; i < json.length; i += 1 ) {
+    imageTags.push('<img src="' + json[i].thumbnail.path + '/portrait_xlarge.' + json[i].thumbnail.extension + '" alt="' + json[i].title + '" >');
+  }
   deferred.resolve(imageTags);
   return deferred.promise;
 };
 
+var list = [];
+
 var showMe = function(arr) {
   "use strict";
-  console.log(arr);
+  list = arr;
+  return list;
 };
 
-var testObject = function(blob) {
-  console.log(blob);
-};
-
-
+// TODO: add function(reason) for fails for each dot-then
 // The promise chain that drives this bicycle wheel of nodeness
-// TODO: add function(reason) for fails for each dot then
 getComicsUri(creatorURL)
-  // Return a JSON object of all comics [well, first 20]
+  // Return a JSON object of all comics
   .then(getComicsFunction)
   .then(getCovers)
-  .then(showMe)
+  .then(showMe);
   // .fail(function(error) {
   //   console.log(error);
   // })
   // .done();
 
-// var get = function(url) {
-//   "use strict";
-//   // return a new promise
-//   return new Promise(function(resolve, reject) {
-//     http.get(url, function(res) {
-//       console.log(res.statusCode);
-//       var body = '';
-
-//       res.on('data', function (chunk) {
-//         body += chunk;
-//       });
-
-//       res.on('end', function(chunk) {
-//         // console.log("at res.on(end) body:", body);
-//         return body;
-//       });
-//     }).on('error', function(e) {
-//       console.log("Error: ", e);
-//     });
-//   });
-//   // console.log(body);
-//   // return body;
-// };
-
-// run the function
-// get(creatorURL).then(function(response) {
-//   console.log("json!", response);
-// });
+console.log("list is ", typeof(list));
 
 // Make server. Run functions to make API calls. Display images.
 http.createServer(function (request, response) {
@@ -153,8 +116,10 @@ http.createServer(function (request, response) {
   // console.log('before image is made: ', warrenEllis);
   // var template = "<img src='" + warrenEllis + "' />"
   // response.end('Hello <b>World</b>\n' + template);
-  response.end('Hello <b>World</b>\n');
+  response.end('Hello <b>World</b>\n' + list);
 }).listen(8124);
+
+console.log("listening on 8124");
 
 // pass form data [name] to server
 // if not in db, FIRE off to API to get id
