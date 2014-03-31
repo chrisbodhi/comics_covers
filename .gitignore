@@ -1,3 +1,7 @@
 # Storage of environmental variables, a.k.a. the Marvel API keys
 
 .env
+
+# Node Modules, for now
+
+node_modules/
