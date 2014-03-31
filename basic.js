@@ -10,7 +10,7 @@ var last = 'ellis';
 // ts is a time stamp changed to a string for the URL
 // var ts = new Date().toTimeString();
 var ts = new Date().toTimeString();
-var private_key = '9fb95b541971264dce4b4dc8a7c9bf8064b574a0';
+var private_key = '';
 var public_key = '3699d5fb6e009e218438be4fa84b70d3';
 
 // MD5 hash created per docs stated need for such a combination of information to make a call from the server; that is, node.js
