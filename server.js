@@ -34,7 +34,7 @@ var hexed = hash.digest('hex');
 var requisite = "ts=" + ts + "&apikey=" + public_key + "&hash=" + hexed;
 
 // URL for making search based on creator name
-var creatorURL = "http://gateway.marvel.com/v1/public/creators?firstName=" + first + "&lastName=" + last + "&" + requisite;
+var creatorURL = "http://gateway.marvel.com/v1/public/creators?firstName=" + first + "&lastName=" + last;
 
 //
 // Start of the promises chain!
@@ -47,25 +47,27 @@ var creatorURL = "http://gateway.marvel.com/v1/public/creators?firstName=" + fir
 var getComicsUri = function(uri){
   "use strict";
   var deferred = Q.defer();
-
-  http.get(uri, function(res) {
-    console.log("Status code:", res.statusCode);
-    var body = '';
-
-    res.on('data', function (chunk) {
-      body += chunk;
+  
+  request({
+      url: 'http://gateway.marvel.com/v1/public/creators',
+      json: true,
+      qs: {
+        ts: ts,
+        apikey: public_key,
+        hash: hexed,
+        firstName: 'Warren',
+        lastName: 'Ellis',
+        limit: 20,
+        offset: 0
+      }
+    }, function(err, res, body) {
+      if (err){
+        deferred.reject(new Error("Status code was " + req.statusCode));
+      } else {
+        deferred.resolve(body.data.results[0].comics.collectionURI);
+      }
     });
-
-    res.on('end', function(chunk) {
-      var responseJSON = JSON.parse(body);
-      var comicsCollectionUri = responseJSON.data.results[0].comics.collectionURI;
-      console.log(comicsCollectionUri, "getComicsUri");
-      deferred.resolve(comicsCollectionUri);
-    });
-  }).on('error', function(e) {
-    console.log("Error: ", e);
-  });
-  return deferred.promise;
+    return deferred.promise;
 };
 
 // Takes the comicsCollection URI, adds the requisite data for making a
@@ -74,26 +76,27 @@ var getComicsUri = function(uri){
 var getComicsFunction = function(collectionUri){
   "use strict";
   var deferred = Q.defer();
+  console.log(collectionUri);
 
-  collectionUri += "?" + requisite;
-  http.get(collectionUri, function(res) {
-    console.log(res.statusCode);
-    var body = '';
+//   collectionUri += "?" + requisite;
+//   http.get(collectionUri, function(res) {
+//     console.log(res.statusCode);
+//     var body = '';
 
-    res.on('data', function (chunk) {
-      body += chunk;
-    });
+//     res.on('data', function (chunk) {
+//       body += chunk;
+//     });
 
-    res.on('end', function(chunk) {
-      var responseJSON = JSON.parse(body);
-      var comicsJSON = responseJSON.data.results;
-      // console.log(comicsJSON, "comicsJSON");
-      deferred.resolve(comicsJSON);
-    });
-  }).on('error', function(e) {
-    console.log("Error: ", e);
-  });
-  return deferred.promise;
+//     res.on('end', function(chunk) {
+//       var responseJSON = JSON.parse(body);
+//       var comicsJSON = responseJSON.data.results;
+//       // console.log(comicsJSON, "comicsJSON");
+//       deferred.resolve(comicsJSON);
+//     });
+//   }).on('error', function(e) {
+//     console.log("Error: ", e);
+//   });
+//   return deferred.promise;
 };
 
 // Creates an array of image tags to be used on the frontend
@@ -124,47 +127,18 @@ var list = [];
 var showMe = function(arr) {
   "use strict";
   list = arr;
-  // console.log(list, "list");
   return list;
 };
-
-console.log('starting request test');
-request({
-      url: 'http://gateway.marvel.com/v1/public/comics',
-      json: true,
-      qs: {
-        ts: ts,
-        apikey: public_key,
-        hash: hexed,
-        limit: 20,
-        offset: 0
-      }
-    }, function(err, response) {
-      if (err) {
-        console.log(err);
-      }
-
-      if (response.statusCode) {
-        console.log(response.statusCode);
-      }
-    });
-
 
 // // The promise chain that drives this bicycle wheel of nodeness
 // // Start with a creator name, end with an array of image tags
 // //   of their 20 most recent works
 // //
 // // TODO: add function(reason) for fails for each dot-then
-// getComicsUri(creatorURL)
-//   .then(getComicsFunction)
+getComicsUri(creatorURL)
+  .then(getComicsFunction);
 //   .then(getCovers)
 //   .then(showMe);
-
-// // Running `node basic.js` in the command line stops executing code above this point. Loading the webpage runs everything below this line.
-// // Why? Don't know. Maybe because showMe() has a return?
-
-// console.log("list is ", typeof(list));
-// console.log("what it is ");
 
 // Make server. Run functions to make API calls. Display images.
 http.createServer(function (request, response) {
