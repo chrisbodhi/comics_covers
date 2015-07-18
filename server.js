@@ -2,7 +2,9 @@ var http     = require('http'),
     crypto   = require('crypto'),
     Q        = require('q'),
     dotenv   = require('dotenv'),
-    request  = require('request');
+    request  = require('request'),
+    express  = require('express'),
+    app      = express();
 
 // Prepare the md5 for making server-side call to API
 // http://developer.marvel.com/documentation/authorization
@@ -132,13 +134,23 @@ getComicsUri()
   .then(getCovers)
   .then(showMe);
 
-// Make server. Run functions to make API calls. Display images.
-http.createServer(function (request, response) {
-  response.writeHead(200, {'Content-Type': 'text/html'});
-  response.end('Hello <b>World</b>\n' + list);
-}).listen(1337);
+app.use(express.static('public'));
 
-console.log("listening on 1337");
+app.get('/', function (req, res) {
+  res.send('index.html');
+});
+
+var server = app.listen(1337, function () {
+  var host = server.address().address,
+      port = server.address().port;
+  console.log('Example app listening at http://%s:%s', host, port);
+});
+
+// Make server. Run functions to make API calls. Display images.
+// http.createServer(function (request, response) {
+//   response.writeHead(200, {'Content-Type': 'text/html'});
+//   response.end('Hello <b>World</b>\n' + list);
+// }).listen(1337);
 
 // pass form data [name] to server
 // if not in db, FIRE off to API to get id
