@@ -2,9 +2,7 @@
   "name": "comics_covers",
   "version": "0.0.1",
   "dependencies": {
-    "angular": "latest",
-    "angular-route": "latest",
-    "foundation": "latest",
-    "foundation-icons": "latest"
+    "angular": "1.4.3",
+    "angular-route": "1.4.3"
   }
 }
