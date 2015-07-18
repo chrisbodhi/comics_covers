@@ -5,3 +5,7 @@
 # Node Modules, for now
 
 node_modules/
+
+# Bower things, for now
+
+public/libs/*

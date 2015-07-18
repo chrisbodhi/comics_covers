@@ -1,12 +1,12 @@
 ﻿{
-  "name": "node-todo",
-  "version": "0.0.0",
-  "description": "Simple todo application",
+  "name": "comics_covers",
+  "version": "0.0.1",
+  "description": "Search for & display Marvel comics covers by creator",
   "main": "server.js",
-  "author": "@chrisbodhi by way of Scotch",
+  "author": "@chrisbodhi",
   "scripts": 
   {
-    "start": "node basic.js" 
+    "start": "node server.js" 
   },
   "devDependencies": 
   {

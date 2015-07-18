@@ -1,0 +1,11 @@
+{
+  "name": "comics_covers",
+  "version": "0.0.1",
+  "dependencies": {
+    "angular": "latest",
+    "angular-route": "latest",
+    // "angular-ui-router": "latest",
+    "foundation": "latest",
+    "foundation-icons": "latest"
+  }
+}
