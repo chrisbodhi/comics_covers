@@ -1,4 +1,7 @@
 module.exports = function(grunt) {
+  
+  require('load-grunt-tasks')(grunt);
+  
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
     jshint: {
@@ -17,11 +20,6 @@ module.exports = function(grunt) {
     }
   });
 
-  grunt.loadNpmTasks('grunt-contrib-jshint');
-  grunt.loadNpmTasks('grunt-contrib-jasmine');
-  grunt.loadNpmTasks('grunt-contrib-watch');
-
-  // this would be run by typing "grunt test" on the command line
-  grunt.registerTask('test', ['jshint', 'jasmine']);
-
+  grunt.registerTask('default', ['watch']);          // run with 'grunt'
+  grunt.registerTask('test', ['jshint', 'jasmine']); // run with 'grunt test'
 };
