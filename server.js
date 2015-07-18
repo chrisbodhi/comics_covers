@@ -1,7 +1,8 @@
-var http = require('http');
-var crypto = require('crypto');
-var Q = require('q');
-var dotenv = require('dotenv');
+var http = require('http'),
+    crypto = require('crypto'),
+    Q = require('q'),
+    dotenv = require('dotenv'),
+    request = require('request');
 
 // Prepare the md5 for making server-side call to API
 // http://developer.marvel.com/documentation/authorization
@@ -127,21 +128,43 @@ var showMe = function(arr) {
   return list;
 };
 
-// The promise chain that drives this bicycle wheel of nodeness
-// Start with a creator name, end with an array of image tags
-//   of their 20 most recent works
-//
-// TODO: add function(reason) for fails for each dot-then
-getComicsUri(creatorURL)
-  .then(getComicsFunction)
-  .then(getCovers)
-  .then(showMe);
+console.log('starting request test');
+request({
+      url: 'http://gateway.marvel.com/v1/public/comics',
+      json: true,
+      qs: {
+        ts: ts,
+        apikey: public_key,
+        hash: hexed,
+        limit: 20,
+        offset: 0
+      }
+    }, function(err, response) {
+      if (err) {
+        console.log(err);
+      }
 
-// Running `node basic.js` in the command line stops executing code above this point. Loading the webpage runs everything below this line.
-// Why? Don't know. Maybe because showMe() has a return?
+      if (response.statusCode) {
+        console.log(response.statusCode);
+      }
+    });
 
-console.log("list is ", typeof(list));
-console.log("what it is ");
+
+// // The promise chain that drives this bicycle wheel of nodeness
+// // Start with a creator name, end with an array of image tags
+// //   of their 20 most recent works
+// //
+// // TODO: add function(reason) for fails for each dot-then
+// getComicsUri(creatorURL)
+//   .then(getComicsFunction)
+//   .then(getCovers)
+//   .then(showMe);
+
+// // Running `node basic.js` in the command line stops executing code above this point. Loading the webpage runs everything below this line.
+// // Why? Don't know. Maybe because showMe() has a return?
+
+// console.log("list is ", typeof(list));
+// console.log("what it is ");
 
 // Make server. Run functions to make API calls. Display images.
 http.createServer(function (request, response) {
