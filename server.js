@@ -147,9 +147,9 @@ console.log("what it is ");
 http.createServer(function (request, response) {
   response.writeHead(200, {'Content-Type': 'text/html'});
   response.end('Hello <b>World</b>\n' + list);
-}).listen(8124);
+}).listen(1337);
 
-console.log("listening on 8124");
+console.log("listening on 1337");
 
 // pass form data [name] to server
 // if not in db, FIRE off to API to get id
