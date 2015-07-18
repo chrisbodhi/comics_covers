@@ -14,15 +14,15 @@ var md5 = crypto.createHash('md5');
 dotenv.load()
 
 // Placeholder test name - to be stored in a db or pulled from a form later
-var first = 'warren';
-var last = 'ellis';
+var first = 'Warren',
+    last = 'Ellis';
 
 // ts is a time stamp changed to a string for the URL
 var ts = new Date().toTimeString();
 
 // use the dotenv package to retrieve keys
-var private_key = process.env.MARVEL_PRIVATE;
-var public_key = process.env.MARVEL_PUBLIC;
+var private_key = process.env.MARVEL_PRIVATE,
+    public_key = process.env.MARVEL_PUBLIC;
 
 // Hash created per dev docs to make the server-side call
 var hash = md5.update(ts + private_key + public_key);
@@ -30,39 +30,33 @@ var hash = md5.update(ts + private_key + public_key);
 // hash.digest('hex') to turn hash into string of letters and numbers for public consumption
 var hexed = hash.digest('hex');
 
-// end of slug containing information for authenticating API request
-var requisite = "ts=" + ts + "&apikey=" + public_key + "&hash=" + hexed;
-
-// URL for making search based on creator name
-var creatorURL = "http://gateway.marvel.com/v1/public/creators?firstName=" + first + "&lastName=" + last;
-
-//
 // Start of the promises chain!
 // Uses the Q.defer() helper method from the Q library
 //   Creates a promise object, updates it with .resolve,
 //   then passes return value using .promise at the end
 //
-// Uses http.get to hit the API, returns the URI of the creator's comics
+// Uses 'request' to hit the API, returns the URI of the creator's comics
 //   ex: http://gateway.marvel.com/v1/public/creators/:creatorID/comics
-var getComicsUri = function(uri){
+var getComicsUri = function(){
   "use strict";
   var deferred = Q.defer();
   
   request({
+      method: 'GET',
       url: 'http://gateway.marvel.com/v1/public/creators',
       json: true,
       qs: {
         ts: ts,
         apikey: public_key,
         hash: hexed,
-        firstName: 'Warren',
-        lastName: 'Ellis',
+        firstName: first,
+        lastName: last,
         limit: 20,
         offset: 0
       }
     }, function(err, res, body) {
       if (err){
-        deferred.reject(new Error("Status code was " + req.statusCode));
+        deferred.reject(new Error("Status code was " + res.statusCode));
       } else {
         deferred.resolve(body.data.results[0].comics.collectionURI);
       }
@@ -70,33 +64,31 @@ var getComicsUri = function(uri){
     return deferred.promise;
 };
 
-// Takes the comicsCollection URI, adds the requisite data for making a
-// server-side call, gets a JSON object of the comics
+// Takes the comicsCollection URI, gets a JSON object of the comics
 // Returns only the first 20 entries currently
 var getComicsFunction = function(collectionUri){
   "use strict";
   var deferred = Q.defer();
-  console.log(collectionUri);
-
-//   collectionUri += "?" + requisite;
-//   http.get(collectionUri, function(res) {
-//     console.log(res.statusCode);
-//     var body = '';
-
-//     res.on('data', function (chunk) {
-//       body += chunk;
-//     });
-
-//     res.on('end', function(chunk) {
-//       var responseJSON = JSON.parse(body);
-//       var comicsJSON = responseJSON.data.results;
-//       // console.log(comicsJSON, "comicsJSON");
-//       deferred.resolve(comicsJSON);
-//     });
-//   }).on('error', function(e) {
-//     console.log("Error: ", e);
-//   });
-//   return deferred.promise;
+  
+  request({
+      method: 'GET',
+      url: collectionUri,
+      json: true,
+      qs: {
+        ts: ts,
+        apikey: public_key,
+        hash: hexed,
+        limit: 20,
+        offset: 0
+      }
+    }, function(err, res, body) {
+      if (err){
+        deferred.reject(new Error("Status code was " + res.statusCode));
+      } else {
+        deferred.resolve(body.data.results);
+      }
+    });
+    return deferred.promise;
 };
 
 // Creates an array of image tags to be used on the frontend
@@ -135,10 +127,10 @@ var showMe = function(arr) {
 // //   of their 20 most recent works
 // //
 // // TODO: add function(reason) for fails for each dot-then
-getComicsUri(creatorURL)
-  .then(getComicsFunction);
-//   .then(getCovers)
-//   .then(showMe);
+getComicsUri()
+  .then(getComicsFunction)
+  .then(getCovers)
+  .then(showMe);
 
 // Make server. Run functions to make API calls. Display images.
 http.createServer(function (request, response) {
