@@ -1,8 +1,8 @@
-var http = require('http'),
-    crypto = require('crypto'),
-    Q = require('q'),
-    dotenv = require('dotenv'),
-    request = require('request');
+var http     = require('http'),
+    crypto   = require('crypto'),
+    Q        = require('q'),
+    dotenv   = require('dotenv'),
+    request  = require('request');
 
 // Prepare the md5 for making server-side call to API
 // http://developer.marvel.com/documentation/authorization
@@ -11,7 +11,7 @@ var http = require('http'),
 var md5 = crypto.createHash('md5');
 
 // Prepare the environmental variables, aka keys, stored in .env
-dotenv.load()
+dotenv.load();
 
 // Placeholder test name - to be stored in a db or pulled from a form later
 var first = 'Warren',
