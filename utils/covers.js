@@ -8,14 +8,14 @@ var Q = require('q');
 //   533475ade25bc/portrait_xlarge.jpg" 
 //   alt="Moon Knight (2014) #2" >', ..]
 var getCovers = function(json) {
-  "use strict";
-  var imageTags = [];
+  'use strict';
   var deferred = Q.defer();
-
-  for (var i = 0; i < json.length; i += 1 ) {
-    imageTags.push('<img src="' + json[i].thumbnail.path + '/portrait_xlarge.' + json[i].thumbnail.extension + '" alt="' + json[i].title + '" >');
-  }
-  console.log(imageTags, "imageTags");
+  
+  var imageTags = json.map(function(j){
+    return '<img src="' + j.thumbnail.path + '/portrait_xlarge.' + j.thumbnail.extension + '" alt="' + j.title + '" >';
+  });
   deferred.resolve(imageTags);
   return deferred.promise;
 };
+
+module.exports = getCovers;
