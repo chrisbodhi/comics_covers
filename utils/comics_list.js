@@ -6,7 +6,7 @@ var helpers = require('./helpers');
 // Takes the comicsCollection URI, gets a JSON object of the comics
 // Returns only the first 20 entries currently
 var getComics = function(collectionUri){
-  "use strict";
+  'use strict';
   var deferred = Q.defer();
   
   request({
